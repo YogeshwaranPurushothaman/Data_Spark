@@ -1,0 +1,125 @@
+1.Top Performing Products by Quantity Sold
+SELECT 
+    `Product Name`,
+    SUM(`quantity`) AS total_quantity_sold,
+    SUM(`quantity` * `_unit_price_usd_`) AS total_revenue
+FROM 
+    proj_data_spark_merged
+GROUP BY 
+    `Product Name`
+ORDER BY 
+total_quantity_sold DESC;
+
+----------------------------------
+
+2.Age Group Distribution by Country
+SELECT customers_country, 
+       CASE 
+           WHEN YEAR(CURDATE()) - YEAR(age) < 25 THEN 'Under 25'
+           WHEN YEAR(CURDATE()) - YEAR(age) BETWEEN 25 AND 35 THEN '25-35'
+           WHEN YEAR(CURDATE()) - YEAR(age) BETWEEN 36 AND 50 THEN '36-50'
+           ELSE 'Above 50'
+       END AS AgeGroup,
+       COUNT(customerkey) AS CustomerCount
+FROM proj_data_spark_merged
+WHERE age IS NOT NULL
+GROUP BY customers_country, AgeGroup
+ORDER BY CustomerCount DESC;
+
+----------------------------------
+
+3.Customer Distribution by City and Country
+SELECT 
+    customers_city, customers_country,
+    COUNT(customerkey) AS CustomerCount
+FROM 
+    proj_data_spark_merged
+GROUP BY 
+    customers_city, customers_country
+ORDER BY 
+CustomerCount DESC LIMIT 5;
+
+----------------------------------
+
+4.Customers by Gender and Continent
+SELECT gender, customers_continent, COUNT(customers_city) AS CustomerCount
+FROM proj_data_spark_merged
+GROUP BY gender, customers_continent
+ORDER BY CustomerCount DESC;
+
+----------------------------------
+
+5.Geographical analysis by sales
+SELECT 
+    `customers_city`,
+    SUM(`quantity` * `_unit_price_usd_`) AS total_sales
+FROM 
+    proj_data_spark_merged
+GROUP BY 
+    `customers_city`
+ORDER BY 
+total_sales DESC;
+
+----------------------------------
+
+6.Online Store Performance
+SELECT 
+    'square_meters' AS Store,
+    SUM(`quantity` * `_unit_price_usd_`) AS total_sales,
+    COUNT(DISTINCT `order_number`) AS total_orders
+FROM 
+    proj_data_spark_merged
+WHERE 
+`storekey` = 0;
+
+----------------------------------
+
+7.Overall Sales Performance Over Time
+SELECT 
+    DATE_FORMAT(`order_date`, '%Y-%m') AS month,
+    SUM(`quantity` * `_unit_price_usd_`) AS total_sales
+FROM 
+    proj_data_spark_merged
+GROUP BY 
+    month
+ORDER BY 
+month;
+
+----------------------------------
+
+8.Profitability Analysis by Product
+SELECT 
+    `product_name`,
+    (SUM(`_unit_price_usd_`) - SUM(`_unit_cost_usd_`)) AS profit_margin
+FROM 
+    proj_data_spark_merged
+GROUP BY 
+    `product_name`
+HAVING 
+    profit_margin > 0
+ORDER BY 
+profit_margin DESC;
+
+----------------------------------
+
+9.Sales by Currency
+SELECT 
+    `currency_code`,
+    SUM(`quantity` * `_unit_price_usd_`) AS total_sales,
+    AVG(`exchange`) AS average_exchange_rate
+FROM 
+    proj_data_spark_merged
+GROUP BY 
+    `currency_code`
+ORDER BY 
+total_sales DESC;
+
+----------------------------------
+
+10.Top 3 Product Categories Preferred by Female Customer
+SELECT Subcategory, SUM(quantity) AS TotalPurchased
+FROM proj_data_spark_merged
+WHERE gender = 'Female'
+GROUP BY Subcategory
+ORDER BY TotalPurchased DESC
+LIMIT 3;
